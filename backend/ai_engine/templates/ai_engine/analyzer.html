@@ -1,0 +1,248 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Custom Styles to override admin light theme for this specific immersive view -->
+<style>
+    /* Force the main container to be dark */
+    main { background-color: #1a0b2e !important; padding: 0 !important; }
+    .heatmap-cell { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #1f2937; }
+    .heatmap-cell.dark { color: white; }
+</style>
+
+<div class="min-h-screen bg-[#1a0b2e] p-8 font-sans">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#7c3aed] rounded flex items-center justify-center shadow-lg shadow-purple-500/50">
+                <i class="fa-solid fa-microchip text-white text-xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white">AI Complaint Analyzer</h1>
+        </div>
+        <div class="bg-[#f3e8ff] text-[#6b21a8] px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-microchip"></i> Powered by NLP
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Panel: AI Analysis Workbench -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-xl p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">AI Analysis Workbench</h2>
+            
+            <form method="post" action="{% url 'ai_engine:analyzer' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-900 mb-2">Complaint Text Input</label>
+                    <textarea name="complaint_text" rows="5" class="w-full border border-gray-300 rounded-lg p-4 text-gray-800 text-sm focus:outline-none focus:border-purple-500 shadow-sm" required>{% if input_text %}{{ input_text }}{% else %}My WiFi disconnects every 10 minutes especially at night. I have restarted the router multiple times but the issue keeps coming back.{% endif %}</textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-[#5b21b6] hover:bg-purple-800 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors mb-8 shadow-md">
+                    Analyze with AI <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            {% if result %}
+            <!-- Results Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Category Result -->
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-tag text-[#5b21b6]"></i> Result
+                    </div>
+                    <div class="text-xl font-bold text-gray-900 mb-3">{{ result.category }}</div>
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Confidence bar</span>
+                        <span>{{ result.confidence }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-[#5b21b6] h-2 rounded-full" style="width: {{ result.confidence }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Priority Result -->
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-fire text-[#f59e0b]"></i> Result
+                    </div>
+                    <div class="text-xl font-bold text-gray-900 mb-3">{{ result.priority }} Priority</div>
+                    <div class="text-xs text-gray-500 mb-1">Color coding</div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        {% if result.priority == 'Urgent' %}
+                            <div class="bg-[#ef4444] h-2 rounded-full w-4/5"></div>
+                        {% elif result.priority == 'Medium' %}
+                            <div class="bg-[#f59e0b] h-2 rounded-full w-3/5"></div>
+                        {% else %}
+                            <div class="bg-[#22c55e] h-2 rounded-full w-1/3"></div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Suggested Action -->
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-regular fa-lightbulb text-[#f59e0b]"></i> Suggested action
+                    </div>
+                    <div class="text-lg font-bold text-gray-900 leading-tight">
+                        {{ result.suggested_action }}
+                    </div>
+                </div>
+
+                <!-- Estimated Resolution -->
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-clock text-[#5b21b6]"></i> Estimated resolution
+                    </div>
+                    <div class="text-lg font-bold text-gray-900 leading-tight">
+                        {{ result.estimated_resolution }}
+                    </div>
+                </div>
+
+            </div>
+            {% else %}
+            <!-- Initial State (Matches Mockup) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-tag text-[#5b21b6]"></i> Result
+                    </div>
+                    <div class="text-xl font-bold text-gray-900 mb-3">Router Instability</div>
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Confidence bar</span>
+                        <span>87%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-[#5b21b6] h-2 rounded-full w-[87%]"></div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-fire text-[#f59e0b]"></i> Result
+                    </div>
+                    <div class="text-xl font-bold text-gray-900 mb-3">Medium Priority</div>
+                    <div class="text-xs text-gray-500 mb-1">Color coding</div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-[#f59e0b] h-2 rounded-full w-3/5"></div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-regular fa-lightbulb text-[#f59e0b]"></i> Suggested action
+                    </div>
+                    <div class="text-lg font-bold text-gray-900 leading-tight">
+                        Check router firmware, verify splitter, restart ONT device
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-bold mb-2">
+                        <i class="fa-solid fa-clock text-[#5b21b6]"></i> Estimated resolution
+                    </div>
+                    <div class="text-lg font-bold text-gray-900 leading-tight">
+                        2–4 hours | Assign field technician
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right Panel: AI Model Performance -->
+        <div class="bg-white rounded-xl shadow-xl p-6 flex flex-col">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">AI Model Performance</h2>
+            
+            <div class="flex justify-center mb-6">
+                <!-- SVG Circle representing 91.4% -->
+                <div class="relative w-40 h-40">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="12" fill="none"></circle>
+                        <circle cx="50" cy="50" r="40" stroke="#8b5cf6" stroke-width="12" fill="none" stroke-dasharray="251.2" stroke-dashoffset="21.6" class="transition-all duration-1000"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col">
+                        <span class="text-3xl font-black text-gray-900 tracking-tighter">91.4%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3 mb-8">
+                <div class="text-sm"><span class="font-bold text-gray-900">Training data:</span> <span class="text-gray-800">12,400 complaints</span></div>
+                <div class="text-sm leading-snug"><span class="font-bold text-gray-900">Categories trained:</span> <span class="text-gray-800">5 (Speed, Router, Outage, Billing, Installation)</span></div>
+                <div class="text-sm"><span class="font-bold text-gray-900">Last updated:</span> <span class="text-gray-800">3 days ago</span></div>
+            </div>
+
+            <!-- Heatmap / Confusion Matrix CSS Grid -->
+            <div class="flex-1">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-xs font-bold text-gray-500 transform -rotate-90 origin-bottom-left absolute -translate-x-6 translate-y-16">Category</span>
+                </div>
+                
+                <div class="grid grid-cols-[auto_repeat(5,minmax(0,1fr))_auto] gap-0.5 ml-6">
+                    <!-- Header Row -->
+                    <div></div>
+                    <div class="text-[10px] text-gray-500 text-center pb-1">Speed</div>
+                    <div class="text-[10px] text-gray-500 text-center pb-1">Router</div>
+                    <div class="text-[10px] text-gray-500 text-center pb-1">Outage</div>
+                    <div class="text-[10px] text-gray-500 text-center pb-1">Billing</div>
+                    <div class="text-[10px] text-gray-500 text-center pb-1">Install..</div>
+                    <div></div>
+                    
+                    <!-- Row 1 -->
+                    <div class="text-[10px] text-gray-500 text-right pr-2 flex items-center justify-end">Speed</div>
+                    <div class="heatmap-cell bg-[#31065e] dark h-8">10.5</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div></div>
+
+                    <!-- Row 2 -->
+                    <div class="text-[10px] text-gray-500 text-right pr-2 flex items-center justify-end">Speed, Router</div>
+                    <div class="heatmap-cell bg-[#e9d5ff] h-8">8.3</div>
+                    <div class="heatmap-cell bg-[#3b0764] dark h-8">18.3</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.4</div>
+                    <div class="heatmap-cell bg-[#ede9fe] h-8">5.5</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div></div>
+
+                    <!-- Row 3 -->
+                    <div class="text-[10px] text-gray-500 text-right pr-2 flex items-center justify-end">Outage</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#e9d5ff] h-8">7.4</div>
+                    <div class="heatmap-cell bg-[#4c1d95] dark h-8">19.3</div>
+                    <div class="heatmap-cell bg-[#ddd6fe] h-8">8.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">2.4</div>
+                    <div></div>
+
+                    <!-- Row 4 -->
+                    <div class="text-[10px] text-gray-500 text-right pr-2 flex items-center justify-end">Billing</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#ede9fe] h-8">5.8</div>
+                    <div class="heatmap-cell bg-[#3b0764] dark h-8">19.7</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div></div>
+
+                    <!-- Row 5 -->
+                    <div class="text-[10px] text-gray-500 text-right pr-2 flex items-center justify-end">Installation</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#ddd6fe] h-8">6.4</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">0.0</div>
+                    <div class="heatmap-cell bg-[#f5f3ff] h-8">3.0</div>
+                    <div class="heatmap-cell bg-[#2e1065] dark h-8">17.5</div>
+                    
+                    <!-- Color Scale Gradient -->
+                    <div class="row-span-5 ml-2 w-3 rounded bg-gradient-to-b from-[#f5f3ff] to-[#2e1065]"></div>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
