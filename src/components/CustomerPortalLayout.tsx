@@ -51,9 +51,9 @@ export default function CustomerPortalLayout() {
   const initials = getInitials(displayName);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f8fafc' }}>
+    <div className="app-container app-container-customer">
       {/* Top Navbar */}
-      <header style={{ background: '#0f766e', color: 'white', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="header-customer">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ fontWeight: 800, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -65,7 +65,7 @@ export default function CustomerPortalLayout() {
           <Bell size={20} style={{ cursor: 'pointer' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontWeight: 500 }}>{displayName}</span>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontWeight: 600 }}>
+            <div className="avatar-initials">
                {initials}
             </div>
           </div>
@@ -74,8 +74,8 @@ export default function CustomerPortalLayout() {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar */}
-        <aside style={{ width: '250px', background: 'white', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '1.5rem 0' }}>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <aside className="sidebar sidebar-customer">
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
             {navItems.map((item) => {
               const isActive = item.exact 
                 ? location.pathname === item.path 
@@ -90,27 +90,7 @@ export default function CustomerPortalLayout() {
                       sessionStorage.clear();
                       window.location.href = '/login';
                     }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem 1.5rem',
-                      border: 'none',
-                      background: 'transparent',
-                      width: '100%',
-                      textAlign: 'left',
-                      color: 'var(--danger)',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      marginTop: '2rem'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#fee2e2';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
+                    className="nav-link-customer logout-btn"
                   >
                     <Icon size={18} />
                     {item.name}
@@ -122,19 +102,7 @@ export default function CustomerPortalLayout() {
                 <Link 
                   key={item.name} 
                   to={item.path}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem 1.5rem',
-                    textDecoration: 'none',
-                    color: isActive ? 'white' : 'var(--text-dark)',
-                    backgroundColor: isActive ? '#0f766e' : 'transparent',
-                    borderRight: isActive ? '4px solid #064e3b' : '4px solid transparent',
-                    fontWeight: isActive ? 500 : 400,
-                    transition: 'all 0.2s ease',
-                    marginTop: item.name === 'Logout' ? '2rem' : '0'
-                  }}
+                  className={`nav-link-customer ${isActive ? 'active' : ''}`}
                 >
                   <Icon size={18} />
                   {item.name}
@@ -145,7 +113,7 @@ export default function CustomerPortalLayout() {
         </aside>
 
         {/* Main Content Area */}
-        <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+        <main className="main-content">
           <Outlet />
         </main>
       </div>
